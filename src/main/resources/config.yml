@@ -1,0 +1,17 @@
+# Defines how the death tax is calculated.
+tax:
+  # Available values: PERCENTAGE, FIXED
+  mode: PERCENTAGE
+  # When mode is PERCENTAGE the value is treated as the percentage of the player's balance to remove.
+  # When mode is FIXED the value is treated as a flat amount to remove.
+  value: 10.0
+  # Minimum balance that should remain after the tax is applied.
+  minimum-balance: 0.0
+
+# Controls how currency amounts are displayed to players.
+display:
+  decimal-places: 2
+
+messages:
+  # Player-facing message written in MiniMessage format. Use <amount> as the placeholder.
+  death: "<red>You lost $<amount> as you died.</red>"

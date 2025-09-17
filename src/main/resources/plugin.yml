@@ -1,0 +1,8 @@
+name: DeathAndTaxes
+version: '${version}'
+main: gg.jos.deathandtaxes.DeathAndTaxesPlugin
+api-version: '1.21'
+authors: [ JosTheDude ]
+softdepend: [ Vault ]
+description: Plugin which adds a configurable tax on a player's balance upon death.
+website: https://jos.gg/
