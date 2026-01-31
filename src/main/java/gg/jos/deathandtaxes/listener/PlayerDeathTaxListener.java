@@ -51,14 +51,18 @@ public final class PlayerDeathTaxListener implements Listener {
         MiniMessage miniMessage = plugin.getMiniMessage();
 
         plugin.getServer().getGlobalRegionScheduler().execute(plugin, () -> {
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerId);
-            double balance = economy.getBalance(offlinePlayer);
+            Player onlinePlayer = Bukkit.getPlayer(playerId);
+            OfflinePlayer targetPlayer = onlinePlayer != null && onlinePlayer.isOnline()
+                    ? onlinePlayer
+                    : Bukkit.getOfflinePlayer(playerId);
+
+            double balance = economy.getBalance(targetPlayer);
             double taxAmount = settings.calculateTax(balance);
             if (taxAmount <= 0.0D) {
                 return;
             }
 
-            EconomyResponse response = economy.withdrawPlayer(offlinePlayer, taxAmount);
+            EconomyResponse response = economy.withdrawPlayer(targetPlayer, taxAmount);
             if (!response.transactionSuccess()) {
                 plugin.getLogger().warning(
                         "Failed to withdraw death tax from " + playerName + " (" + playerId + "): " + response.errorMessage
@@ -71,7 +75,6 @@ public final class PlayerDeathTaxListener implements Listener {
                 return;
             }
 
-            Player onlinePlayer = Bukkit.getPlayer(playerId);
             if (onlinePlayer == null || !onlinePlayer.isOnline()) {
                 return;
             }
