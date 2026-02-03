@@ -14,4 +14,7 @@ display:
 
 messages:
   # Player-facing message written in MiniMessage format. Use <amount> as the placeholder.
-  death: "<red>You lost $<amount> as you died.</red>"
+  death: |-
+    <gray>
+    <#f38ba8>You lost $<amount> as you died.</#f38ba8>
+    <gray>

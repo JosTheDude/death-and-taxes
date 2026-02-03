@@ -7,3 +7,12 @@ softdepend: [ Vault, CoinsEngine, CoinsEngine-gogosqueeze ]
 description: Plugin which adds a configurable tax on a player's balance upon death.
 website: https://jos.gg/
 folia-supported: true
+commands:
+  deathandtaxes:
+    description: Reload DeathAndTaxes configuration.
+    usage: /<command> reload
+    aliases: [ dat ]
+permissions:
+  deathandtaxes.reload:
+    description: Allows reloading the DeathAndTaxes configuration.
+    default: op

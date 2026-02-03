@@ -1,6 +1,7 @@
 package gg.jos.deathandtaxes;
 
 import gg.jos.deathandtaxes.config.DeathTaxSettings;
+import gg.jos.deathandtaxes.command.DeathAndTaxesCommand;
 import gg.jos.deathandtaxes.listener.PlayerDeathTaxListener;
 import gg.jos.deathandtaxes.service.CurrencyFormatter;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -31,6 +32,8 @@ public final class DeathAndTaxesPlugin extends JavaPlugin {
         miniMessage = MiniMessage.miniMessage();
         reloadSettings();
 
+        registerCommands();
+
         if (!setupEconomy()) {
             getLogger().severe("Vault economy provider not found. Disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
@@ -38,6 +41,16 @@ public final class DeathAndTaxesPlugin extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(new PlayerDeathTaxListener(this), this);
+    }
+
+    private void registerCommands() {
+        if (getCommand("deathandtaxes") != null) {
+            DeathAndTaxesCommand command = new DeathAndTaxesCommand(this);
+            getCommand("deathandtaxes").setExecutor(command);
+            getCommand("deathandtaxes").setTabCompleter(command);
+        } else {
+            getLogger().warning("Command registration failed for 'deathandtaxes'.");
+        }
     }
 
     /**
