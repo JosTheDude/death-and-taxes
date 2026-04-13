@@ -1,3 +1,12 @@
+# DeathAndTaxes works using the Vault economy API, this defines which implementation to use
+economy:
+  # If true, the plugin will attempt to use the default economy provider registered with Vault. (the highest priority provider)
+  default: true
+  # If default economy is false, you can specify specific names of economy implementations to use.
+  # This is useful if you have multiple Vault economy implementations and want to specify which one(s) DeathAndTaxes should use. (if the highest priority provider is not the one you want)
+  # This is also the only way to support multiple economy implementations at the same time.
+  economies: []
+
 # Defines how the death tax is calculated.
 tax:
   # Available values: PERCENTAGE, FIXED
@@ -7,13 +16,20 @@ tax:
   value: 10.0
   # Minimum balance that should remain after the tax is applied.
   minimum-balance: 0.0
+  # What world(s) the tax should be applied in.
+  worlds:
+    - world
+    - world_nether
+    - world_the_end
+  # If the worlds list should be a blacklist instead of a whitelist. (if true, the tax will be applied in all worlds except those listed in worlds)
+  blacklist-worlds: false
 
 # Controls how currency amounts are displayed to players.
 display:
   decimal-places: 2
 
 messages:
-  # Player-facing message written in MiniMessage format. Use <amount> as the placeholder.
+  # Player-facing message written in MiniMessage format. Use <amount> as the placeholder. (if you have multiple economies configured, it will be <amount_economyname>)
   death: |-
     <gray>
     <#f38ba8>You lost $<amount> as you died.</#f38ba8>

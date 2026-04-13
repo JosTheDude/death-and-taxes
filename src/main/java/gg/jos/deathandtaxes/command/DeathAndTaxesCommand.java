@@ -30,8 +30,9 @@ public final class DeathAndTaxesCommand implements CommandExecutor, TabCompleter
                 return true;
             }
 
-            plugin.reloadSettings();
-            sender.sendMessage("DeathAndTaxes configuration reloaded.");
+            sender.sendMessage(plugin.reloadSettings()
+                    ? "DeathAndTaxes configuration reloaded."
+                    : "Failed to reload configuration. Check server logs for details.");
             return true;
         }
 

@@ -18,7 +18,6 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public final class DeathAndTaxesPlugin extends JavaPlugin {
 
-    private Economy economy;
     private DeathTaxSettings settings;
     private CurrencyFormatter currencyFormatter;
     private MiniMessage miniMessage;
@@ -28,17 +27,16 @@ public final class DeathAndTaxesPlugin extends JavaPlugin {
      */
     @Override
     public void onEnable() {
-        saveDefaultConfig();
         miniMessage = MiniMessage.miniMessage();
-        reloadSettings();
 
-        registerCommands();
-
-        if (!setupEconomy()) {
+        saveDefaultConfig();
+        if (!reloadSettings()) {
             getLogger().severe("Vault economy provider not found. Disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        registerCommands();
 
         getServer().getPluginManager().registerEvents(new PlayerDeathTaxListener(this), this);
     }
@@ -56,31 +54,16 @@ public final class DeathAndTaxesPlugin extends JavaPlugin {
     /**
      * Reloads settings from disk so administrators can apply configuration changes at runtime.
      */
-    public void reloadSettings() {
+    public boolean reloadSettings() {
         reloadConfig();
-        settings = DeathTaxSettings.fromConfig(this, getConfig());
-        currencyFormatter = new CurrencyFormatter(settings.getDecimalPlaces());
-    }
-
-    private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+        DeathTaxSettings settings = DeathTaxSettings.fromConfig(this, getConfig());
+        if (settings == null) {
             return false;
         }
 
-        RegisteredServiceProvider<Economy> registration = getServer().getServicesManager().getRegistration(Economy.class);
-        if (registration == null) {
-            return false;
-        }
-
-        economy = registration.getProvider();
+        this.settings = settings;
+        this.currencyFormatter = new CurrencyFormatter(settings.getDecimalPlaces());
         return true;
-    }
-
-    /**
-     * Exposes the active Vault economy provider, or {@code null} if one could not be located.
-     */
-    public Economy getEconomy() {
-        return economy;
     }
 
     /**
