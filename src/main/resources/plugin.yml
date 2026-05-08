@@ -16,3 +16,6 @@ permissions:
   deathandtaxes.reload:
     description: Allows reloading the DeathAndTaxes configuration.
     default: op
+  deathandtaxes.discount.*:
+    description: Allows granting death tax discount permissions such as deathandtaxes.discount.10.
+    default: false

@@ -16,6 +16,14 @@ tax:
   value: 10.0
   # Minimum balance that should remain after the tax is applied.
   minimum-balance: 0.0
+  # Which discount permission percentages should be recognized.
+  # Example: if 10 is listed here, players with deathandtaxes.discount.10 get 10% off the final tax.
+  # The highest configured permission the player has will be used.
+  discounts:
+    - 10
+    - 25
+    - 50
+    - 100
   # What world(s) the tax should be applied in.
   worlds:
     - world

@@ -9,6 +9,10 @@ An extremely configurable death tax plugin with Folia Support! Make death _cost.
 ## Commands
 - `/deathandtaxes reload` - Reloads the Configuration (`deathandtaxes.reload`)
 
+## Permissions
+- `deathandtaxes.reload` - Reloads the plugin configuration
+- `deathandtaxes.discount.X` - Applies an `X%` discount to death taxes when `X` is listed under `tax.discounts` in the config, using the highest granted configured value
+
 ## Feature Requests & Contributing
 If you'd like to contribute, simply make an issue with your proposed feature/enhancement or browse existing issues that are approved and make a pull request! PRs are accepted at this time.
 

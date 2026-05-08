@@ -51,6 +51,7 @@ public final class PlayerDeathTaxListener implements Listener {
         String playerName = player.getName();
         CurrencyFormatter formatter = plugin.getCurrencyFormatter();
         MiniMessage miniMessage = plugin.getMiniMessage();
+        int discountPercent = settings.getDiscountPercent(player);
 
         plugin.getServer().getGlobalRegionScheduler().execute(plugin, () -> {
             Player onlinePlayer = Bukkit.getPlayer(playerId);
@@ -61,7 +62,7 @@ public final class PlayerDeathTaxListener implements Listener {
             Map<Economy, Double> taxes = new HashMap<>();
             for (Economy economy : settings.getEconomies()) {
                 double balance = economy.getBalance(targetPlayer);
-                double taxAmount = settings.calculateTax(balance);
+                double taxAmount = applyDiscount(settings.calculateTax(balance), discountPercent);
                 if (taxAmount > 0.0D) {
                     taxes.put(economy, taxAmount);
                 }
@@ -103,5 +104,13 @@ public final class PlayerDeathTaxListener implements Listener {
 
             onlinePlayer.getScheduler().execute(plugin, () -> onlinePlayer.sendMessage(message), null, 1L);
         });
+    }
+
+    private double applyDiscount(double taxAmount, int discountPercent) {
+        if (taxAmount <= 0.0D || discountPercent <= 0) {
+            return taxAmount;
+        }
+
+        return taxAmount * ((100.0D - discountPercent) / 100.0D);
     }
 }

@@ -9,11 +9,13 @@ import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.permissions.Permissible;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -28,9 +30,10 @@ public final class DeathTaxSettings {
     private final int decimalPlaces;
     private final List<String> worlds;
     private final boolean worldsBlacklist;
+    private final List<Integer> discountPercentages;
     private final String deathMessage;
 
-    private DeathTaxSettings(List<Economy> economies, TaxMode taxMode, double taxValue, double minimumBalance, int decimalPlaces, List<String> worlds, boolean worldsBlacklist, String deathMessage) {
+    private DeathTaxSettings(List<Economy> economies, TaxMode taxMode, double taxValue, double minimumBalance, int decimalPlaces, List<String> worlds, boolean worldsBlacklist, List<Integer> discountPercentages, String deathMessage) {
         this.economies = economies;
         this.taxMode = taxMode;
         this.taxValue = taxValue;
@@ -38,6 +41,7 @@ public final class DeathTaxSettings {
         this.decimalPlaces = decimalPlaces;
         this.worlds = worlds;
         this.worldsBlacklist = worldsBlacklist;
+        this.discountPercentages = discountPercentages;
         this.deathMessage = deathMessage;
     }
 
@@ -100,11 +104,12 @@ public final class DeathTaxSettings {
 
         List<String> worlds = config.getStringList("tax.worlds");
         boolean worldsBlacklist = config.getBoolean("tax.blacklist-worlds", false);
+        List<Integer> discountPercentages = parseDiscountPercentages(config.getIntegerList("tax.discounts"), plugin);
         if (worlds.isEmpty() && !worldsBlacklist) {
             plugin.getLogger().warning("No worlds specified in config and blacklist is false, death and taxes will have no effect");
         }
 
-        return new DeathTaxSettings(economies, mode, value, minimumBalance, decimalPlaces, worlds, worldsBlacklist, deathMessage);
+        return new DeathTaxSettings(economies, mode, value, minimumBalance, decimalPlaces, worlds, worldsBlacklist, discountPercentages, deathMessage);
     }
 
     public boolean isTaxedWorld(World world) {
@@ -137,6 +142,16 @@ public final class DeathTaxSettings {
         }
 
         return Math.min(desiredAmount, maximumAllowed);
+    }
+
+    public int getDiscountPercent(Permissible permissible) {
+        for (int discountPercentage : discountPercentages) {
+            if (permissible.hasPermission("deathandtaxes.discount." + discountPercentage)) {
+                return discountPercentage;
+            }
+        }
+
+        return 0;
     }
 
     /**
@@ -207,5 +222,26 @@ public final class DeathTaxSettings {
      */
     public String getDeathMessage() {
         return deathMessage;
+    }
+
+    private static List<Integer> parseDiscountPercentages(List<Integer> configuredDiscounts, JavaPlugin plugin) {
+        List<Integer> validDiscounts = new ArrayList<>();
+        for (Integer configuredDiscount : configuredDiscounts) {
+            if (configuredDiscount == null) {
+                continue;
+            }
+
+            int clampedDiscount = Math.max(0, Math.min(configuredDiscount, 100));
+            if (clampedDiscount != configuredDiscount) {
+                plugin.getLogger().warning("Clamped configured discount " + configuredDiscount + " to " + clampedDiscount + ".");
+            }
+
+            if (!validDiscounts.contains(clampedDiscount)) {
+                validDiscounts.add(clampedDiscount);
+            }
+        }
+
+        validDiscounts.sort(Comparator.reverseOrder());
+        return validDiscounts;
     }
 }
