@@ -37,8 +37,11 @@ display:
   decimal-places: 2
 
 messages:
-  # Player-facing message written in MiniMessage format. Use <amount> as the placeholder. (if you have multiple economies configured, it will be <amount_economyname>)
+  # Player-facing message written in MiniMessage format. Use <amount> as the placeholder.
+  # If you have multiple economies configured, use <amount_economyname> with the economy name lowercased and non [a-z0-9_-] characters replaced with _.
   death: |-
     <gray>
     <#f38ba8>You lost $<amount> as you died.</#f38ba8>
     <gray>
+  # Sent when a configured death tax discount permission reduced the final tax. Use <discount> as the placeholder.
+  discount: "<#a6e3a1>Your death tax discount saved you <discount>%.</#a6e3a1>"

@@ -16,6 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 
@@ -32,8 +33,9 @@ public final class DeathTaxSettings {
     private final boolean worldsBlacklist;
     private final List<Integer> discountPercentages;
     private final String deathMessage;
+    private final String discountMessage;
 
-    private DeathTaxSettings(List<Economy> economies, TaxMode taxMode, double taxValue, double minimumBalance, int decimalPlaces, List<String> worlds, boolean worldsBlacklist, List<Integer> discountPercentages, String deathMessage) {
+    private DeathTaxSettings(List<Economy> economies, TaxMode taxMode, double taxValue, double minimumBalance, int decimalPlaces, List<String> worlds, boolean worldsBlacklist, List<Integer> discountPercentages, String deathMessage, String discountMessage) {
         this.economies = economies;
         this.taxMode = taxMode;
         this.taxValue = taxValue;
@@ -43,6 +45,7 @@ public final class DeathTaxSettings {
         this.worldsBlacklist = worldsBlacklist;
         this.discountPercentages = discountPercentages;
         this.deathMessage = deathMessage;
+        this.discountMessage = discountMessage;
     }
 
     /**
@@ -101,6 +104,7 @@ public final class DeathTaxSettings {
         double minimumBalance = Math.max(0.0D, config.getDouble("tax.minimum-balance", 0.0D));
         int decimalPlaces = Math.max(0, config.getInt("display.decimal-places", 2));
         String deathMessage = config.getString("messages.death", "<red>You lost <amount> coins to the death tax.</red>");
+        String discountMessage = config.getString("messages.discount", "<green>Your death tax discount reduced the tax by <discount>%.</green>");
 
         List<String> worlds = config.getStringList("tax.worlds");
         boolean worldsBlacklist = config.getBoolean("tax.blacklist-worlds", false);
@@ -109,7 +113,7 @@ public final class DeathTaxSettings {
             plugin.getLogger().warning("No worlds specified in config and blacklist is false, death and taxes will have no effect");
         }
 
-        return new DeathTaxSettings(economies, mode, value, minimumBalance, decimalPlaces, worlds, worldsBlacklist, discountPercentages, deathMessage);
+        return new DeathTaxSettings(economies, mode, value, minimumBalance, decimalPlaces, worlds, worldsBlacklist, discountPercentages, deathMessage, discountMessage);
     }
 
     public boolean isTaxedWorld(World world) {
@@ -169,7 +173,7 @@ public final class DeathTaxSettings {
 
         List<TagResolver> placeholders = new ArrayList<>();
         for (Map.Entry<Economy, Double> entry : taxes.entrySet()) {
-            placeholders.add(Placeholder.unparsed("amount_" + entry.getKey().getName(), formatter.format(entry.getValue())));
+            placeholders.add(Placeholder.unparsed("amount_" + normalizePlaceholderSegment(entry.getKey().getName()), formatter.format(entry.getValue())));
         }
 
         if (taxes.size() == 1) {
@@ -179,6 +183,17 @@ public final class DeathTaxSettings {
         return miniMessage.deserialize(
                 deathMessage,
                 placeholders.toArray(TagResolver[]::new)
+        );
+    }
+
+    public Component renderDiscountMessage(int discountPercent, MiniMessage miniMessage) {
+        if (discountPercent <= 0 || discountMessage == null || discountMessage.isBlank()) {
+            return null;
+        }
+
+        return miniMessage.deserialize(
+                discountMessage,
+                Placeholder.unparsed("discount", Integer.toString(discountPercent))
         );
     }
 
@@ -222,6 +237,19 @@ public final class DeathTaxSettings {
      */
     public String getDeathMessage() {
         return deathMessage;
+    }
+
+    public String getDiscountMessage() {
+        return discountMessage;
+    }
+
+    private static String normalizePlaceholderSegment(String value) {
+        String normalized = value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_-]", "_");
+        if (normalized.isEmpty()) {
+            return "economy";
+        }
+
+        return normalized;
     }
 
     private static List<Integer> parseDiscountPercentages(List<Integer> configuredDiscounts, JavaPlugin plugin) {

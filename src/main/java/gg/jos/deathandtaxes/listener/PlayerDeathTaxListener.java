@@ -86,15 +86,16 @@ public final class PlayerDeathTaxListener implements Listener {
                             "Failed to withdraw death tax for economy " + entry.getKey().getName() + " from " + playerName + " (" + playerId + "): " + response.errorMessage
                     );
                 } else {
-                    taxed.entrySet().add(entry);
+                    taxed.put(entry.getKey(), entry.getValue());
                 }
                 taxResponses.put(entry.getKey(), response);
             }
 
             new PlayerDeathTaxEvent(player, taxResponses).callEvent();
 
+            Component discountMessage = settings.renderDiscountMessage(discountPercent, miniMessage);
             Component message = settings.renderDeathMessage(taxed, formatter, miniMessage);
-            if (message == null) {
+            if (discountMessage == null && message == null) {
                 return;
             }
 
@@ -102,7 +103,15 @@ public final class PlayerDeathTaxListener implements Listener {
                 return;
             }
 
-            onlinePlayer.getScheduler().execute(plugin, () -> onlinePlayer.sendMessage(message), null, 1L);
+            onlinePlayer.getScheduler().execute(plugin, () -> {
+                if (message != null) {
+                    onlinePlayer.sendMessage(message);
+                }
+
+                if (discountMessage != null && !taxed.isEmpty()) {
+                    onlinePlayer.sendMessage(discountMessage);
+                }
+            }, null, 1L);
         });
     }
 
