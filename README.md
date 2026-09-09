@@ -7,7 +7,6 @@ An extremely configurable death tax plugin with Folia Support! Make death _cost.
 - Tax-free grace deaths that persist on each player
 - Optional server tax account for collected currency
 - MiniMessage player messages and per-economy amount placeholders
-- Automatic, non-destructive config upgrades
 - Folia & ShreddedPaper Support
 
 ## Requirements
@@ -77,11 +76,6 @@ When disabled, taxes are removed as before. `refund-on-failure` controls whether
 - `messages.death` supports `<amount>` for a single economy, or `<amount_economyname>` for each configured economy. Economy names are lowercased and non-alphanumeric characters become `_`.
 - `messages.grace-death` supports the same amount placeholders, plus `<remaining>` and `<grace_deaths>`.
 - `messages.discount` supports `<discount>`.
-
-## Configuration upgrades and reloads
-At startup, newly introduced paths and their bundled comments are added to `config.yml`. Existing values and comments are retained. If an existing scalar or list conflicts with a newly introduced config section, that subtree is left unchanged and a warning is logged.
-
-`/deathandtaxes reload` applies changes from disk without writing `config.yml`. Restart the server when replacing the plugin JAR; hot-unloading a Bukkit plugin can leave stale commands registered.
 
 ## Feature Requests & Contributing
 If you'd like to contribute, simply make an issue with your proposed feature/enhancement or browse existing issues that are approved and make a pull request! PRs are accepted at this time.
