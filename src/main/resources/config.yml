@@ -16,6 +16,13 @@ tax:
   value: 10.0
   # Minimum balance that should remain after the tax is applied.
   minimum-balance: 0.0
+  # Enable to deposit every successfully collected tax into the configured Vault account.
+  # When disabled, taxes are removed as before. Enabling requires a non-blank account name.
+  # If depositing into this account fails, choose whether the original tax is refunded to the player.
+  account:
+    enabled: false
+    name: ""
+    refund-on-failure: true
   # Which discount permission percentages should be recognized.
   # Example: if 10 is listed here, players with deathandtaxes.discount.10 get 10% off the final tax.
   # The highest configured permission the player has will be used.
@@ -36,12 +43,23 @@ tax:
 display:
   decimal-places: 2
 
+# Gives each player this many tax-free deaths. Set to 0 to disable.
+# Usage is stored on the player and persists across restarts and configuration reloads.
+grace-deaths:
+  count: 1
+
 messages:
   # Player-facing message written in MiniMessage format. Use <amount> as the placeholder.
   # If you have multiple economies configured, use <amount_economyname> with the economy name lowercased and non [a-z0-9_-] characters replaced with _.
   death: |-
     <gray>
     <#f38ba8>You lost $<amount> as you died.</#f38ba8>
+    <gray>
+  # Sent instead of charging a player for a grace death.
+  # Supports the same amount placeholders as messages.death, plus <remaining> and <grace_deaths>.
+  grace-death: |-
+    <gray>
+    <#f9e2af>This death was tax-free. Future deaths could cost you $<amount>.</#f9e2af>
     <gray>
   # Sent when a configured death tax discount permission reduced the final tax. Use <discount> as the placeholder.
   discount: "<#a6e3a1>Your death tax discount saved you <discount>%.</#a6e3a1>"

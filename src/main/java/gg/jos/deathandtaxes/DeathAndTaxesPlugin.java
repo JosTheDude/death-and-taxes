@@ -1,5 +1,6 @@
 package gg.jos.deathandtaxes;
 
+import gg.jos.deathandtaxes.config.ConfigDefaultsUpdater;
 import gg.jos.deathandtaxes.config.DeathTaxSettings;
 import gg.jos.deathandtaxes.command.DeathAndTaxesCommand;
 import gg.jos.deathandtaxes.listener.PlayerDeathTaxListener;
@@ -30,6 +31,11 @@ public final class DeathAndTaxesPlugin extends JavaPlugin {
         miniMessage = MiniMessage.miniMessage();
 
         saveDefaultConfig();
+        if (!ConfigDefaultsUpdater.addMissingDefaults(this)) {
+            getLogger().severe("Could not safely update config.yml. Disabling plugin.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         if (!reloadSettings()) {
             getLogger().severe("Vault economy provider not found. Disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);

@@ -28,23 +28,29 @@ public final class DeathTaxSettings {
     private final TaxMode taxMode;
     private final double taxValue;
     private final double minimumBalance;
+    private final TaxAccount taxAccount;
     private final int decimalPlaces;
     private final List<String> worlds;
     private final boolean worldsBlacklist;
     private final List<Integer> discountPercentages;
+    private final int graceDeathCount;
     private final String deathMessage;
+    private final String graceDeathMessage;
     private final String discountMessage;
 
-    private DeathTaxSettings(List<Economy> economies, TaxMode taxMode, double taxValue, double minimumBalance, int decimalPlaces, List<String> worlds, boolean worldsBlacklist, List<Integer> discountPercentages, String deathMessage, String discountMessage) {
+    private DeathTaxSettings(List<Economy> economies, TaxMode taxMode, double taxValue, double minimumBalance, TaxAccount taxAccount, int decimalPlaces, List<String> worlds, boolean worldsBlacklist, List<Integer> discountPercentages, int graceDeathCount, String deathMessage, String graceDeathMessage, String discountMessage) {
         this.economies = economies;
         this.taxMode = taxMode;
         this.taxValue = taxValue;
         this.minimumBalance = minimumBalance;
+        this.taxAccount = taxAccount;
         this.decimalPlaces = decimalPlaces;
         this.worlds = worlds;
         this.worldsBlacklist = worldsBlacklist;
         this.discountPercentages = discountPercentages;
+        this.graceDeathCount = graceDeathCount;
         this.deathMessage = deathMessage;
+        this.graceDeathMessage = graceDeathMessage;
         this.discountMessage = discountMessage;
     }
 
@@ -90,6 +96,8 @@ public final class DeathTaxSettings {
                     plugin.getLogger().warning("Could not find economy named " + economyName + " from config.");
                     return null;
                 }
+
+                economies.add(economy);
             }
         }
 
@@ -102,8 +110,11 @@ public final class DeathTaxSettings {
 
         double value = config.getDouble("tax.value", 10.0D);
         double minimumBalance = Math.max(0.0D, config.getDouble("tax.minimum-balance", 0.0D));
+        TaxAccount taxAccount = readTaxAccount(config);
         int decimalPlaces = Math.max(0, config.getInt("display.decimal-places", 2));
+        int graceDeathCount = Math.max(0, config.getInt("grace-deaths.count", 1));
         String deathMessage = config.getString("messages.death", "<red>You lost <amount> coins to the death tax.</red>");
+        String graceDeathMessage = config.getString("messages.grace-death", "<yellow>This death was tax-free. Future deaths could cost you <amount> coins.</yellow>");
         String discountMessage = config.getString("messages.discount", "<green>Your death tax discount reduced the tax by <discount>%.</green>");
 
         List<String> worlds = config.getStringList("tax.worlds");
@@ -113,7 +124,7 @@ public final class DeathTaxSettings {
             plugin.getLogger().warning("No worlds specified in config and blacklist is false, death and taxes will have no effect");
         }
 
-        return new DeathTaxSettings(economies, mode, value, minimumBalance, decimalPlaces, worlds, worldsBlacklist, discountPercentages, deathMessage, discountMessage);
+        return new DeathTaxSettings(economies, mode, value, minimumBalance, taxAccount, decimalPlaces, worlds, worldsBlacklist, discountPercentages, graceDeathCount, deathMessage, graceDeathMessage, discountMessage);
     }
 
     public boolean isTaxedWorld(World world) {
@@ -171,6 +182,25 @@ public final class DeathTaxSettings {
             return null;
         }
 
+        return renderAmountMessage(deathMessage, taxes, formatter, miniMessage);
+    }
+
+    public Component renderGraceDeathMessage(Map<Economy, Double> taxes, int remainingGraceDeaths, CurrencyFormatter formatter, MiniMessage miniMessage) {
+        if (graceDeathMessage == null || graceDeathMessage.isBlank()) {
+            return null;
+        }
+
+        List<TagResolver> placeholders = amountPlaceholders(taxes, formatter);
+        placeholders.add(Placeholder.unparsed("remaining", Integer.toString(remainingGraceDeaths)));
+        placeholders.add(Placeholder.unparsed("grace_deaths", Integer.toString(graceDeathCount)));
+        return miniMessage.deserialize(graceDeathMessage, placeholders.toArray(TagResolver[]::new));
+    }
+
+    private Component renderAmountMessage(String message, Map<Economy, Double> taxes, CurrencyFormatter formatter, MiniMessage miniMessage) {
+        return miniMessage.deserialize(message, amountPlaceholders(taxes, formatter).toArray(TagResolver[]::new));
+    }
+
+    private List<TagResolver> amountPlaceholders(Map<Economy, Double> taxes, CurrencyFormatter formatter) {
         List<TagResolver> placeholders = new ArrayList<>();
         for (Map.Entry<Economy, Double> entry : taxes.entrySet()) {
             placeholders.add(Placeholder.unparsed("amount_" + normalizePlaceholderSegment(entry.getKey().getName()), formatter.format(entry.getValue())));
@@ -180,10 +210,7 @@ public final class DeathTaxSettings {
             placeholders.add(Placeholder.unparsed("amount", formatter.format(taxes.values().iterator().next())));
         }
 
-        return miniMessage.deserialize(
-                deathMessage,
-                placeholders.toArray(TagResolver[]::new)
-        );
+        return placeholders;
     }
 
     public Component renderDiscountMessage(int discountPercent, MiniMessage miniMessage) {
@@ -226,10 +253,21 @@ public final class DeathTaxSettings {
     }
 
     /**
+     * @return optional account that receives collected taxes
+     */
+    public TaxAccount getTaxAccount() {
+        return taxAccount;
+    }
+
+    /**
      * @return number of decimal places used for currency formatting
      */
     public int getDecimalPlaces() {
         return decimalPlaces;
+    }
+
+    public int getGraceDeathCount() {
+        return graceDeathCount;
     }
 
     /**
@@ -271,5 +309,13 @@ public final class DeathTaxSettings {
 
         validDiscounts.sort(Comparator.reverseOrder());
         return validDiscounts;
+    }
+
+    private static TaxAccount readTaxAccount(FileConfiguration config) {
+        boolean enabled = config.getBoolean("tax.account.enabled", false);
+        String configuredName = config.getString("tax.account.name", "");
+        String name = configuredName == null ? "" : configuredName.trim();
+        boolean refundOnDepositFailure = config.getBoolean("tax.account.refund-on-failure", true);
+        return new TaxAccount(enabled, name, refundOnDepositFailure);
     }
 }
