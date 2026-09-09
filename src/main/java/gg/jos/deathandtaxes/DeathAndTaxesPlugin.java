@@ -5,6 +5,7 @@ import gg.jos.deathandtaxes.config.DeathTaxSettings;
 import gg.jos.deathandtaxes.command.DeathAndTaxesCommand;
 import gg.jos.deathandtaxes.listener.PlayerDeathTaxListener;
 import gg.jos.deathandtaxes.service.CurrencyFormatter;
+import gg.jos.deathandtaxes.service.TaxDeathLogger;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -22,6 +23,7 @@ public final class DeathAndTaxesPlugin extends JavaPlugin {
     private DeathTaxSettings settings;
     private CurrencyFormatter currencyFormatter;
     private MiniMessage miniMessage;
+    private TaxDeathLogger taxDeathLogger;
 
     /**
      * Bootstraps the plugin by loading configuration, connecting to Vault, and registering listeners.
@@ -29,6 +31,7 @@ public final class DeathAndTaxesPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         miniMessage = MiniMessage.miniMessage();
+        taxDeathLogger = new TaxDeathLogger(this);
 
         saveDefaultConfig();
         if (!ConfigDefaultsUpdater.addMissingDefaults(this)) {
@@ -69,7 +72,15 @@ public final class DeathAndTaxesPlugin extends JavaPlugin {
 
         this.settings = settings;
         this.currencyFormatter = new CurrencyFormatter(settings.getDecimalPlaces());
+        taxDeathLogger.reload(settings.getLoggingSettings());
         return true;
+    }
+
+    @Override
+    public void onDisable() {
+        if (taxDeathLogger != null) {
+            taxDeathLogger.close();
+        }
     }
 
     /**
@@ -84,6 +95,13 @@ public final class DeathAndTaxesPlugin extends JavaPlugin {
      */
     public CurrencyFormatter getCurrencyFormatter() {
         return currencyFormatter;
+    }
+
+    /**
+     * @return service that records successful death-tax collections
+     */
+    public TaxDeathLogger getTaxDeathLogger() {
+        return taxDeathLogger;
     }
 
     /**

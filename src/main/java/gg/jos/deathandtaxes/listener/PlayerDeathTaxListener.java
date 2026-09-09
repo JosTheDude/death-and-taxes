@@ -107,6 +107,7 @@ public final class PlayerDeathTaxListener implements Listener {
             }
 
             new PlayerDeathTaxEvent(player, taxResponses).callEvent();
+            plugin.getTaxDeathLogger().log(playerName, playerId, taxed, formatter);
 
             Component discountMessage = settings.renderDiscountMessage(discountPercent, miniMessage);
             Component message = settings.renderDeathMessage(taxed, formatter, miniMessage);

@@ -48,6 +48,12 @@ display:
 grace-deaths:
   count: 1
 
+# Records each successfully collected death tax with its timestamp, player, and amount.
+# death-taxes.log is written in the DeathAndTaxes plugin directory when file is enabled.
+logging:
+  console: true
+  file: true
+
 messages:
   # Player-facing message written in MiniMessage format. Use <amount> as the placeholder.
   # If you have multiple economies configured, use <amount_economyname> with the economy name lowercased and non [a-z0-9_-] characters replaced with _.

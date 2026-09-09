@@ -6,6 +6,7 @@ An extremely configurable death tax plugin with Folia Support! Make death _cost.
 - Configurable worlds, world blacklist mode, and permission-based discounts
 - Tax-free grace deaths that persist on each player
 - Optional server tax account for collected currency
+- Configurable console and file logging for collected death taxes
 - MiniMessage player messages and per-economy amount placeholders
 - Folia & ShreddedPaper Support
 
@@ -68,6 +69,16 @@ tax:
 ```
 
 When disabled, taxes are removed as before. `refund-on-failure` controls whether a player is refunded when the destination account cannot receive the tax. A failed refund is logged as a severe error.
+
+## Death-tax logs
+
+```yml
+logging:
+  console: true
+  file: true
+```
+
+Successful collections are logged with a UTC timestamp, player name and UUID, and the amount retained per economy. Console and file logging are enabled by default. The file is `plugins/DeathAndTaxes/death-taxes.log`.
 
 ## Messages and display
 

@@ -29,6 +29,7 @@ public final class DeathTaxSettings {
     private final double taxValue;
     private final double minimumBalance;
     private final TaxAccount taxAccount;
+    private final TaxLoggingSettings loggingSettings;
     private final int decimalPlaces;
     private final List<String> worlds;
     private final boolean worldsBlacklist;
@@ -38,12 +39,13 @@ public final class DeathTaxSettings {
     private final String graceDeathMessage;
     private final String discountMessage;
 
-    private DeathTaxSettings(List<Economy> economies, TaxMode taxMode, double taxValue, double minimumBalance, TaxAccount taxAccount, int decimalPlaces, List<String> worlds, boolean worldsBlacklist, List<Integer> discountPercentages, int graceDeathCount, String deathMessage, String graceDeathMessage, String discountMessage) {
+    private DeathTaxSettings(List<Economy> economies, TaxMode taxMode, double taxValue, double minimumBalance, TaxAccount taxAccount, TaxLoggingSettings loggingSettings, int decimalPlaces, List<String> worlds, boolean worldsBlacklist, List<Integer> discountPercentages, int graceDeathCount, String deathMessage, String graceDeathMessage, String discountMessage) {
         this.economies = economies;
         this.taxMode = taxMode;
         this.taxValue = taxValue;
         this.minimumBalance = minimumBalance;
         this.taxAccount = taxAccount;
+        this.loggingSettings = loggingSettings;
         this.decimalPlaces = decimalPlaces;
         this.worlds = worlds;
         this.worldsBlacklist = worldsBlacklist;
@@ -111,6 +113,10 @@ public final class DeathTaxSettings {
         double value = config.getDouble("tax.value", 10.0D);
         double minimumBalance = Math.max(0.0D, config.getDouble("tax.minimum-balance", 0.0D));
         TaxAccount taxAccount = readTaxAccount(config);
+        TaxLoggingSettings loggingSettings = new TaxLoggingSettings(
+                config.getBoolean("logging.console", true),
+                config.getBoolean("logging.file", true)
+        );
         int decimalPlaces = Math.max(0, config.getInt("display.decimal-places", 2));
         int graceDeathCount = Math.max(0, config.getInt("grace-deaths.count", 1));
         String deathMessage = config.getString("messages.death", "<red>You lost <amount> coins to the death tax.</red>");
@@ -124,7 +130,7 @@ public final class DeathTaxSettings {
             plugin.getLogger().warning("No worlds specified in config and blacklist is false, death and taxes will have no effect");
         }
 
-        return new DeathTaxSettings(economies, mode, value, minimumBalance, taxAccount, decimalPlaces, worlds, worldsBlacklist, discountPercentages, graceDeathCount, deathMessage, graceDeathMessage, discountMessage);
+        return new DeathTaxSettings(economies, mode, value, minimumBalance, taxAccount, loggingSettings, decimalPlaces, worlds, worldsBlacklist, discountPercentages, graceDeathCount, deathMessage, graceDeathMessage, discountMessage);
     }
 
     public boolean isTaxedWorld(World world) {
@@ -257,6 +263,13 @@ public final class DeathTaxSettings {
      */
     public TaxAccount getTaxAccount() {
         return taxAccount;
+    }
+
+    /**
+     * @return destinations used for successful death-tax log entries
+     */
+    public TaxLoggingSettings getLoggingSettings() {
+        return loggingSettings;
     }
 
     /**
